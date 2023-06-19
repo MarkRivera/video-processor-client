@@ -52,7 +52,6 @@ function readAndUploadChunks() {
   reader.readAsDataURL(chunk);
 }
 
-
 function uploadChunk(readerEvent: ProgressEvent<FileReader>, currentChunk: number) {
   const file = state.file;
   const data = readerEvent.target!.result;
@@ -62,6 +61,7 @@ function uploadChunk(readerEvent: ProgressEvent<FileReader>, currentChunk: numbe
   params.set("type", file!.type);
   params.set("currentChunk", currentChunk.toString());
   params.set("totalChunks", state.totalChunks.toString());
+  params.set("isLastChunk", (currentChunk === Math.ceil(file!.size / state.chunkSize) - 1).toString());
   console.log({ currentChunk: currentChunk });
 
   const headers = { "Content-Type": "application/octet-stream" };
@@ -76,6 +76,7 @@ function uploadChunk(readerEvent: ProgressEvent<FileReader>, currentChunk: numbe
       }
     })
 }
+
 async function blobIntoDataUrl(queue: Blob[]) {
   const dataUrls: string[] = [];
   for (const chunk of queue) {
@@ -103,6 +104,7 @@ async function* upload(queue: string[]) {
     params.set("type", state.file!.type);
     params.set("currentChunk", state.currentChunk.toString());
     params.set("totalChunks", state.totalChunks.toString());
+    params.set("isLastChunk", (state.currentChunk === state.totalChunks - 1).toString());
 
     const headers = { "Content-Type": "application/octet-stream" };
     const response = await axios.post(url + `?${params.toString()}`, chunk, { headers });
